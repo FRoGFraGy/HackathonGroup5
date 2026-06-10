@@ -59,21 +59,6 @@ const attackChart = new Chart(ctxAttack, {
 });
 
 // 4. เริ่มต้นวาด กราฟโดนัท (Department Impact Chart)
-const ctxDept = document.getElementById('deptChart').getContext('2d');
-new Chart(ctxDept, {
-    type: 'doughnut',
-    data: {
-        labels: ['Sales (ทีมขาย)', 'Finance (การเงิน)', 'Marketing', 'HR'],
-        datasets: [{
-            data: [55, 20, 15, 10], // แก้จากสัดส่วนเดิม [1-3] ที่ติด error
-            backgroundColor: ['#ff3e3e', '#00d4ff', '#ffcc00', '#28a745'],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        plugins: { legend: { position: 'bottom', labels: { color: '#a0a0a0', font: { size: 10 } } } }
-    }
-});
 
 // 5. ฟังก์ชันสำหรับอัปเดตหน้ากราฟเส้นเมื่อมีการกดเปลี่ยนหน้า IP
 function updateIpDashboard() {
