@@ -1,0 +1,108 @@
+// 1. รายชื่อหน้าทั้งหมด (รวม 19 IP + หน้าแรก Overview)
+const ipList = [
+    'ALL IP (OVERVIEW)',
+    '209.103.8.44', '197.82.237.190', '162.240.218.117', '119.123.55.141', 
+    '148.9.19.27', '215.143.100.205', '199.242.130.73', '14.121.165.122', 
+    '196.45.2.86', '211.92.75.1', '199.71.56.65', '187.91.79.110', 
+    '202.129.225.117', '95.125.101.128', '12.104.185.44', '139.94.203.41', 
+    '80.130.43.26', '14.252.124.193', '131.33.12.73'
+];
+let currentIndex = 0;
+
+// 2. ฐานข้อมูลที่ดึงและคัดแยกแกะตัวเลขจากวงเล็บตามช่วงเวลา (Labels: 15:00, 17:00, 18:00, 19:00, 20:00, 21:00, 22:00, 23:00)
+const ipDataset = {
+    'ALL IP (OVERVIEW)': [36503, 36244, 181822, 233325, 208019, 220407, 48386, 169410],
+    '209.103.8.44':      [12156, 0, 0, 12211, 12255, 12164, 0, 12157],
+    '197.82.237.190':    [0, 12082, 12103, 12418, 12246, 12361, 0, 0],
+    '162.240.218.117':   [0, 12105, 0, 12251, 12321, 12297, 0, 0], // หมายเหตุ: ข้ามเวลา 02:00 ในดิบไฟล์เพื่อจัดกลุ่มลงกราฟหลัก
+    '119.123.55.141':    [0, 0, 11970, 12251, 12159, 12424, 0, 12214],
+    '148.9.19.27':       [0, 0, 12024, 12256, 12382, 12314, 0, 11997],
+    '215.143.100.205':   [0, 0, 12118, 12278, 12310, 12178, 0, 12076],
+    '199.242.130.73':    [12328, 0, 0, 12176, 12345, 0, 0, 12102], // หมายเหตุ: ข้ามเวลา 00:00 เพื่อจัดกลุ่มลงกราฟหลัก
+    '14.121.165.122':    [0, 0, 12173, 12086, 12231, 12303, 0, 12064],
+    '196.45.2.86':       [0, 0, 12044, 12321, 12208, 12331, 0, 12074],
+    '211.92.75.1':       [0, 12057, 0, 12327, 12275, 12365, 12145, 0],
+    '199.71.56.65':      [0, 0, 12090, 12373, 12222, 12032, 0, 12059],
+    '187.91.79.110':     [0, 0, 12275, 12278, 12250, 12119, 0, 12109],
+    '202.129.225.117':   [0, 0, 12102, 12192, 12231, 12118, 0, 12124],
+    '95.125.101.128':    [0, 0, 12208, 12334, 12330, 12147, 12100, 0],
+    '12.104.185.44':     [0, 0, 12028, 12359, 0, 12065, 12069, 12079],
+    '139.94.203.41':     [0, 0, 12159, 12095, 12039, 12290, 0, 12077],
+    '80.130.43.26':      [0, 0, 12056, 12316, 12299, 12191, 0, 12071],
+    '14.252.124.193':    [0, 0, 12226, 12202, 12116, 12013, 0, 12207],
+    '131.33.12.73':      [12019, 0, 12212, 12311, 0, 12095, 12072, 0]
+};
+
+// 3. เริ่มต้นวาด กราฟเส้น (Attack Frequency Chart)
+const ctxAttack = document.getElementById('attackChart').getContext('2d');
+const attackChart = new Chart(ctxAttack, {
+    type: 'line',
+    data: {
+        labels: ['15:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'],
+        datasets: [{
+            label: 'Log Intensity',
+            data: ipDataset[ipList[currentIndex]],
+            borderColor: '#ff3e3e',
+            backgroundColor: 'rgba(255, 62, 62, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { grid: { color: '#161b22' }, ticks: { color: '#58a6ff' } },
+            x: { grid: { display: false }, ticks: { color: '#a0a0a0' } }
+        }
+    }
+});
+
+// 4. เริ่มต้นวาด กราฟโดนัท (Department Impact Chart)
+const ctxDept = document.getElementById('deptChart').getContext('2d');
+new Chart(ctxDept, {
+    type: 'doughnut',
+    data: {
+        labels: ['Sales (ทีมขาย)', 'Finance (การเงิน)', 'Marketing', 'HR'],
+        datasets: [{
+            data: [55, 20, 15, 10], // แก้จากสัดส่วนเดิม [1-3] ที่ติด error
+            backgroundColor: ['#ff3e3e', '#00d4ff', '#ffcc00', '#28a745'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        plugins: { legend: { position: 'bottom', labels: { color: '#a0a0a0', font: { size: 10 } } } }
+    }
+});
+
+// 5. ฟังก์ชันสำหรับอัปเดตหน้ากราฟเส้นเมื่อมีการกดเปลี่ยนหน้า IP
+function updateIpDashboard() {
+    const currentIpName = ipList[currentIndex];
+    
+    // แสดงชื่อ IP ปัจจุบันบนหน้าจอ
+    document.getElementById('currentIpDisplay').innerText = currentIpName;
+    
+    // โหลดชุดข้อมูลของ IP นั้นลงกราฟและเรนเดอร์ใหม่
+    attackChart.data.datasets[0].data = ipDataset[currentIpName];
+    attackChart.update();
+}
+
+// 6. ดักจับ Event ตอนกดปุ่มย้อนกลับ (PREV)
+document.getElementById('prevIpBtn').addEventListener('click', () => {
+    if (currentIndex > 0) {
+        currentIndex--;
+    } else {
+        currentIndex = ipList.length - 1; // ย้อนสุดแล้วให้วนไปท้ายสุด
+    }
+    updateIpDashboard();
+});
+
+// 7. ดักจับ Event ตอนกดปุ่มถัดไป (NEXT)
+document.getElementById('nextIpBtn').addEventListener('click', () => {
+    if (currentIndex < ipList.length - 1) {
+        currentIndex++;
+    } else {
+        currentIndex = 0; // เลื่อนจนสุดแล้วให้วนกลับมาหน้าแรกสุด
+    }
+    updateIpDashboard();
+});
