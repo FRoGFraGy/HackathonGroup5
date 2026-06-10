@@ -49,13 +49,15 @@ def extract(path_file: str):
     return ip_order, chars_by_ip
 
 
-def dedupe_keep_order(items):
-    """ตัดตัวซ้ำออกแต่คงลำดับเดิมไว้"""
-    seen = []
+def collapse_consecutive(items):
+    """ยุบเฉพาะตัวที่ติดกัน (run-length) คงตัวที่กระโดดกลับมาซ้ำไว้
+    เช่น  _ _ E E A A R T R O  ->  _ E A R T R O
+    """
+    out = []
     for c in items:
-        if c not in seen:
-            seen.append(c)
-    return seen
+        if not out or out[-1] != c:
+            out.append(c)
+    return out
 
 
 def main():
@@ -66,7 +68,7 @@ def main():
 
     lines_out = [f"จำนวน IP ที่เจอ: {len(ip_order)}", ""]
     for idx, ip in enumerate(ip_order, start=1):
-        pattern = "".join(dedupe_keep_order(chars_by_ip[ip]))
+        pattern = "".join(collapse_consecutive(chars_by_ip[ip]))
         lines_out.append(f"IP: {ip}")
         lines_out.append(pattern)
         lines_out.append("")
