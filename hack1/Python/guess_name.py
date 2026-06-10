@@ -10,8 +10,9 @@ extract_pattern.py
 - ตัดตัวซ้ำออก คงลำดับตามความถี่
 
 วิธีใช้:
-    python3 extract_pattern.py summary.txt
-ถ้าไม่ใส่ argument จะใช้ไฟล์ชื่อ summary.txt ในโฟลเดอร์ปัจจุบัน
+    python3 extract_pattern.py summary.txt          # เซฟลง name.txt อัตโนมัติ
+    python3 extract_pattern.py summary.txt out.txt   # กำหนดชื่อไฟล์ผลลัพธ์เอง
+ถ้าไม่ใส่ argument จะใช้ไฟล์ชื่อ summary.txt และเซฟผลเป็น name.txt
 """
 
 import re
@@ -59,15 +60,26 @@ def dedupe_keep_order(items):
 
 def main():
     path_file = sys.argv[1] if len(sys.argv) > 1 else "summary.txt"
+    out_file = sys.argv[2] if len(sys.argv) > 2 else "name.txt"
 
     ip_order, chars_by_ip = extract(path_file)
 
-    print(f"จำนวน IP ที่เจอ: {len(ip_order)}\n")
-
+    lines_out = [f"จำนวน IP ที่เจอ: {len(ip_order)}", ""]
     for idx, ip in enumerate(ip_order, start=1):
         pattern = "".join(dedupe_keep_order(chars_by_ip[ip]))
-        print(f"{idx:>2}. IP: {ip}")
-        print(f"    ลำดับตัวอักษร: {pattern}\n")
+        lines_out.append(f"IP: {ip}")
+        lines_out.append(pattern)
+        lines_out.append("")
+
+    text = "\n".join(lines_out)
+
+    # แสดงบนหน้าจอ
+    print(text)
+
+    # เซฟลงไฟล์
+    with open(out_file, "w", encoding="utf-8") as f:
+        f.write(text)
+    print(f"\n>> บันทึกผลลงไฟล์: {out_file}")
 
 
 if __name__ == "__main__":
