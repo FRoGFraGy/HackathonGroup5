@@ -61,7 +61,7 @@ def collapse_consecutive(items):
 
 
 def main():
-    path_file = sys.argv[1] if len(sys.argv) > 1 else "pattern.txt"
+    path_file = sys.argv[1] if len(sys.argv) > 1 else "summary.txt"
     out_file = sys.argv[2] if len(sys.argv) > 2 else "name.txt"
 
     ip_order, chars_by_ip = extract(path_file)
