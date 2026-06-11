@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BKK Smart Evacuation Dashboard | Odor Early Warning System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Sarabun & Mitr for premium look -->
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+        }
+        .header-title {
+            font-family: 'Mitr', sans-serif;
+        }
+        /* Custom scrollbar for slate theme */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen lg:h-screen flex flex-col antialiased overflow-x-hidden overflow-y-auto lg:overflow-hidden bg-[#090d16]">
+
+    <!-- TOP NAVIGATION BAR (Governor War Room Style) -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 sticky top-0 z-50 shadow-lg flex-shrink-0">
+        <div class="max-w-[1920px] w-full mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-emerald-500 text-slate-950 p-2.5 rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center">
+                    <i class="fa-solid fa-wind text-2xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="header-title text-xl md:text-2xl font-semibold tracking-wide text-white flex items-center gap-2">
+                        BKK Odor Early Warning System
+                        <span class="bg-emerald-500/10 text-emerald-400 text-xs font-normal px-2.5 py-1 rounded-full border border-emerald-500/30">มุมมองผู้ว่าฯ กทม.</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">ระบบคาดการณ์กลิ่นเคมีและวางแผนอพยพภัยพิบัติอัจฉริยะแบบเรียลไทม์</p>
+                </div>
+            </div>
+            
+            <!-- Real-time Status Center -->
+            <div class="flex items-center gap-4">
+                <div class="bg-slate-800/80 px-4 py-1.5 rounded-xl border border-slate-700 text-right">
+                    <span class="text-[10px] text-slate-400 block uppercase tracking-wider">สถานะการเชื่อมต่อเซนเซอร์</span>
+                    <span class="text-sm font-medium text-emerald-400 flex items-center gap-1.5 justify-end">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500 inline-block animate-ping"></span>
+                        ออนไลน์ (120/120 จุด)
+                    </span>
+                </div>
+                <div class="bg-slate-800/80 px-4 py-1.5 rounded-xl border border-slate-700 text-right">
+                    <span class="text-[10px] text-slate-400 block uppercase tracking-wider">เวลาอัปเดตล่าสุด</span>
+                    <span id="current-time-display" class="text-sm font-semibold text-slate-200">10 มิ.ย. 2569 | 15:49 น.</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 max-w-[1920px] w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 lg:grid-rows-1 gap-4 lg:overflow-hidden lg:h-[calc(100vh-140px)] min-h-0">
+        
+        <!-- COLUMN 1: CONTROLS & INCIDENT TRIGGERS (3 COLS) -->
+        <section class="order-1 lg:order-1 col-span-1 lg:col-span-3 flex flex-col gap-4 lg:h-full lg:overflow-y-auto lg:pr-1 min-h-0">
+            
+            <!-- 1. Incident Simulator (ตัวจำลองสถานการณ์และแหล่งกำเนิด) -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-4 shadow-md">
+                <h2 class="header-title text-base font-semibold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+                    จำลองเหตุการณ์ฉุกเฉิน
+                </h2>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">ประเภทแหล่งกำเนิดมลพิษ</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setSourceType('factory')" id="btn-src-factory" class="btn-source border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 p-2 rounded-xl flex flex-col items-center gap-1.5 text-xs transition active-btn">
+                                <i class="fa-solid fa-industry text-base text-rose-400"></i>
+                                <span>โรงงานเคมี</span>
+                            </button>
+                            <button onclick="setSourceType('water')" id="btn-src-water" class="btn-source border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 p-2 rounded-xl flex flex-col items-center gap-1.5 text-xs transition">
+                                <i class="fa-solid fa-droplet text-base text-blue-400"></i>
+                                <span>โรงบำบัดน้ำ</span>
+                            </button>
+                            <button onclick="setSourceType('landfill')" id="btn-src-landfill" class="btn-source border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 p-2 rounded-xl flex flex-col items-center gap-1.5 text-xs transition">
+                                <i class="fa-solid fa-dumpster text-base text-amber-400"></i>
+                                <span>บ่อขยะ</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Preset Scenarios -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1.5">สถานการณ์ตัวอย่าง (ด่วน)</label>
+                        <div class="space-y-2">
+                            <button onclick="loadScenario('kingkaew')" class="w-full text-left bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 p-2 rounded-xl text-xs flex justify-between items-center group transition">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                                    <div>
+                                        <div class="font-medium text-slate-200 group-hover:text-rose-400 transition">แก๊สเคมีรั่วไหล ลาดกระบัง-กิ่งแก้ว</div>
+                                        <div class="text-[10px] text-slate-500">หนาแน่นสูง • สาร Styrene Monomer</div>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-slate-400 transition text-[10px]"></i>
+                            </button>
+                            
+                            <button onclick="loadScenario('nongkhaem')" class="w-full text-left bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 p-2 rounded-xl text-xs flex justify-between items-center group transition">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                    <div>
+                                        <div class="font-medium text-slate-200 group-hover:text-amber-400 transition">กลิ่นเหม็นไหม้ บ่อขยะหนองแขม</div>
+                                        <div class="text-[10px] text-slate-500">ก๊าซไฮโดรเจนซัลไฟด์ (H₂S) โชยแรง</div>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-slate-400 transition text-[10px]"></i>
+                            </button>
+
+                            <button onclick="loadScenario('khlongtoei')" class="w-full text-left bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 p-2 rounded-xl text-xs flex justify-between items-center group transition">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                    <div>
+                                        <div class="font-medium text-slate-200 group-hover:text-blue-400 transition">สารเคมีโกดังสินค้า ท่าเรือคลองเตย</div>
+                                        <div class="text-[10px] text-slate-500">แอมโมเนียฟุ้งกระจายในชุมชนแออัด</div>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-600 group-hover:text-slate-400 transition text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Meteorological Controls (ข้อมูลอุตุนิยมวิทยาแบบ Interactive) -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-4 shadow-md space-y-3">
+                <h2 class="header-title text-base font-semibold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-sun text-sky-400"></i>
+                    พารามิเตอร์ทิศทางลม & ความแรง
+                </h2>
+
+                <!-- Wind Direction (Angle & Compass) -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-medium text-slate-400">ทิศทางลมพัดไปทาง (Wind Direction)</label>
+                        <span id="wind-angle-text" class="text-sm font-semibold text-sky-400">180° (ทิศใต้)</span>
+                    </div>
+                    <div class="flex items-center gap-4 bg-slate-800/30 p-2 rounded-xl border border-slate-800">
+                        <div class="relative w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-700 shadow-inner flex-shrink-0">
+                            <!-- Compass points -->
+                            <span class="absolute top-0.5 text-[8px] text-slate-500 font-bold">N</span>
+                            <span class="absolute right-1 text-[8px] text-slate-500 font-bold">E</span>
+                            <span class="absolute bottom-0.5 text-[8px] text-slate-500 font-bold">S</span>
+                            <span class="absolute left-1 text-[8px] text-slate-500 font-bold">W</span>
+                            <!-- Compass Arrow pointer -->
+                            <div id="compass-arrow" class="w-1.5 h-8 bg-gradient-to-t from-transparent via-sky-400 to-sky-500 rounded-full transition-transform duration-300" style="transform: rotate(180deg);"></div>
+                        </div>
+                        <div class="flex-1">
+                            <input id="input-wind-angle" type="range" min="0" max="359" value="180" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500" oninput="updateWindAngle(this.value)">
+                            <div class="flex justify-between text-[9px] text-slate-500 mt-1">
+                                <span>0° (เหนือ)</span>
+                                <span>180° (ใต้)</span>
+                                <span>270° (ตก)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wind Speed (ความเร็วลม) -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-medium text-slate-400">ความเร็วลม (Wind Speed)</label>
+                        <span id="wind-speed-text" class="text-sm font-semibold text-sky-400">15 กม./ชม.</span>
+                    </div>
+                    <div class="bg-slate-800/30 p-2 rounded-xl border border-slate-800">
+                        <input id="input-wind-speed" type="range" min="1" max="50" value="15" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500" oninput="updateWindSpeed(this.value)">
+                        <div class="flex justify-between text-[9px] text-slate-500 mt-1">
+                            <span>1 กม./ชม.</span>
+                            <span>25 (ปานกลาง)</span>
+                            <span>50 กม./ชม.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- D/T (Date & Time Simulator) -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">อุณหภูมิปัจจุบัน</label>
+                        <div class="bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-200">34.2 °C</span>
+                            <i class="fa-solid fa-temperature-high text-amber-500 text-xs"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">ความชื้นสัมพัทธ์</label>
+                        <div class="bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-200">65 %</span>
+                            <i class="fa-solid fa-droplet text-blue-400 text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Key Metrics & Gov KPI (ดัชนีชี้วัดของผู้ว่าฯ) -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-4 shadow-md">
+                <h2 class="header-title text-base font-semibold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                    Governor KPI Tracker
+                </h2>
+                <p class="text-[10px] text-slate-400 mb-3">ตัวชี้วัดประสิทธิภาพการจัดการวิกฤตกลิ่นสารเคมีรั่วไหลของ กทม.</p>
+                
+                <div class="space-y-3">
+                    <!-- KPI 1 -->
+                    <div class="bg-slate-850 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between items-start mb-1">
+                            <div>
+                                <h3 class="text-xs font-medium text-slate-300">เวลาตอบสนองเหตุฉุกเฉิน (Response Time)</h3>
+                                <span class="text-[9px] text-slate-500">เป้าหมาย กทม.: &lt; 5 นาที</span>
+                            </div>
+                            <span id="kpi-response-time" class="text-emerald-400 font-bold text-xs bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">3.5 นาที</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-full w-[85%] rounded-full"></div>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2 -->
+                    <div class="bg-slate-850 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between items-start mb-1">
+                            <div>
+                                <h3 class="text-xs font-medium text-slate-300">ประชากรกลุ่มเสี่ยงได้รับการเตือนด่วน</h3>
+                                <span class="text-[9px] text-slate-500">แจ้งเตือนผ่าน SMS & LINE BC</span>
+                            </div>
+                            <span class="text-emerald-400 font-bold text-xs bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">98.2%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-full w-[98%] rounded-full"></div>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3 -->
+                    <div class="bg-slate-850 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between items-start mb-1">
+                            <div>
+                                <h3 class="text-xs font-medium text-slate-300">ลดประชาชนที่ได้รับผลกระทบทางสุขภาพ</h3>
+                                <span class="text-[9px] text-slate-500">เปรียบเทียบกับระบบเดิม</span>
+                            </div>
+                            <span class="text-teal-400 font-bold text-xs bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">-72%</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-teal-500 h-full w-[72%] rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- COLUMN 2: THE INTERACTIVE RISK MAP & FORECAST TIMELINES (5 COLS) -->
+        <section class="order-2 lg:order-2 col-span-1 lg:col-span-5 flex flex-col gap-4 lg:h-full lg:overflow-hidden min-h-0">
+            
+            <!-- Map Visualization Box -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-4 shadow-lg flex-1 flex flex-col min-h-[350px] lg:min-h-0 overflow-hidden">
+                <div class="flex justify-between items-center mb-3">
+                    <div>
+                        <h2 class="header-title text-base font-semibold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-map-location-dot text-rose-500"></i>
+                            Odor & Gas Risk Plume Map
+                        </h2>
+                        <p class="text-[11px] text-slate-400">คลิกลากจุดเกิดเหตุ <i class="fa-solid fa-crosshairs text-rose-400"></i> หรือคลิกในแผนที่เพื่อย้ายตำแหน่ง</p>
+                    </div>
+                    <!-- Legend -->
+                    <div class="flex items-center gap-2 text-[9px]">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> ปลอดภัย</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> เริ่มได้กลิ่น</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> รุนแรง</span>
+                    </div>
+                </div>
+
+                <!-- Interactive Map Canvas Container -->
+                <div class="relative flex-1 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center min-h-0">
+                    <canvas id="bkk-simulation-map" class="w-full h-full cursor-crosshair"></canvas>
+                    
+                    <!-- Floating Map Tooltips -->
+                    <div class="absolute bottom-3 left-3 bg-slate-900/90 border border-slate-700/50 p-2 rounded-lg text-[10px] space-y-1 backdrop-blur shadow-lg">
+                        <div class="font-semibold text-white flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> 
+                            พิกัดแหล่งกำเนิดมลพิษ:
+                        </div>
+                        <div id="origin-coordinate" class="font-mono text-slate-300">Lat: 13.724, Lng: 100.564</div>
+                        <div id="origin-district-text" class="text-rose-400 font-semibold text-[9px]">เขตคลองเตย (โกดังเคมี)</div>
+                    </div>
+
+                    <!-- Wind Overlay Info on Map -->
+                    <div class="absolute top-3 right-3 bg-slate-900/95 border border-slate-700/50 p-2 rounded-lg text-[10px] space-y-1 backdrop-blur shadow-lg">
+                        <div class="flex items-center gap-1.5 text-slate-300">
+                            <i class="fa-solid fa-wind text-sky-400 animate-spin" style="animation-duration: 8s;"></i>
+                            <span id="map-overlay-wind">ทิศทางลม: 180° | 15 km/h</span>
+                        </div>
+                        <div class="h-px bg-slate-800"></div>
+                        <div class="text-[9px] text-slate-400">
+                            ความแรงสารเคมี: <span id="map-overlay-source-strength" class="text-rose-400 font-bold">สูง (High)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Forecast Slider (ลากดูสถานการณ์ 30 นาที) -->
+                <div class="mt-3 bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/80">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock-rotate-left text-slate-400"></i>
+                            ตัววิเคราะห์ช่วงเวลา (30-Min Forecast)
+                        </span>
+                        <span id="forecast-time-text" class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">คาดการณ์ล่วงหน้า: +15 นาที</span>
+                    </div>
+                    <div class="px-2">
+                        <input id="input-time-forecast" type="range" min="0" max="30" value="15" step="5" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="updateForecastTime(this.value)">
+                        <div class="flex justify-between text-[9px] text-slate-400 mt-1 font-mono">
+                            <span class="cursor-pointer" onclick="updateForecastTime(0)">0 นาที <span class="hidden sm:inline">(เกิดเหตุ)</span></span>
+                            <span class="cursor-pointer" onclick="updateForecastTime(10)">+10 นาที</span>
+                            <span class="cursor-pointer font-bold text-amber-400" onclick="updateForecastTime(15)">+15 นาที</span>
+                            <span class="cursor-pointer" onclick="updateForecastTime(20)">+20 นาที</span>
+                            <span class="cursor-pointer text-emerald-400" onclick="updateForecastTime(30)">+30 นาที <span class="hidden sm:inline">(สลายตัว)</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time VOCs Sensors Chart (DT Monitoring) -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-4 shadow-md">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="header-title text-xs font-semibold text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-microchip text-slate-400"></i>
+                        ผลตรวจวัดเซนเซอร์จมูกอิเล็กทรอนิกส์ (VOCs / H₂S / NH₃)
+                    </h3>
+                    <span class="text-[9px] text-slate-400 font-mono">หน่วย: ppm</span>
+                </div>
+                <!-- Mini Charts/Progress bars simulating live data -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                        <div class="text-[9px] text-slate-400 mb-1">สารระเหยง่าย (VOCs)</div>
+                        <div class="text-base font-bold text-rose-500" id="sensor-voc">2.84 <span class="text-[9px] text-slate-500">ppm</span></div>
+                        <div class="w-full bg-slate-800 h-1 rounded-full mt-1.5 overflow-hidden">
+                            <div class="bg-rose-500 h-full w-[85%]" id="bar-voc"></div>
+                        </div>
+                        <span class="text-[8px] text-rose-400 font-medium mt-1 inline-block"><i class="fa-solid fa-triangle-exclamation"></i> เกินเกณฑ์</span>
+                    </div>
+                    
+                    <div class="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                        <div class="text-[9px] text-slate-400 mb-1">ก๊าซไข่เน่า (H₂S)</div>
+                        <div class="text-base font-bold text-amber-400" id="sensor-h2s">0.12 <span class="text-[9px] text-slate-500">ppm</span></div>
+                        <div class="w-full bg-slate-800 h-1 rounded-full mt-1.5 overflow-hidden">
+                            <div class="bg-amber-500 h-full w-[45%]" id="bar-h2s"></div>
+                        </div>
+                        <span class="text-[8px] text-amber-400 font-medium mt-1 inline-block"><i class="fa-solid fa-circle-exclamation"></i> ได้กลิ่น</span>
+                    </div>
+
+                    <div class="bg-slate-950 p-2 rounded-xl border border-slate-800">
+                        <div class="text-[9px] text-slate-400 mb-1">แอมโมเนีย (NH₃)</div>
+                        <div class="text-base font-bold text-emerald-400" id="sensor-nh3">1.20 <span class="text-[9px] text-slate-500">ppm</span></div>
+                        <div class="w-full bg-slate-800 h-1 rounded-full mt-1.5 overflow-hidden">
+                            <div class="bg-emerald-500 h-full w-[15%]" id="bar-nh3"></div>
+                        </div>
+                        <span class="text-[8px] text-emerald-400 font-medium mt-1 inline-block"><i class="fa-solid fa-circle-check"></i> ปลอดภัย</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- COLUMN 3: DECISION SUPPORT SYSTEM (4 COLS) -->
+        <section class="order-3 lg:order-3 col-span-1 lg:col-span-4 flex flex-col gap-4 lg:h-full lg:overflow-y-auto lg:pr-1 min-h-0">
+            
+            <!-- 1. Auto Suggested Actions (การแนะนำเขตแจ้งเตือน เส้นทางอพยพ จุดพักพิง) -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-4 shadow-lg flex flex-col gap-3 min-h-0">
+                <div class="border-b border-slate-800 pb-2">
+                    <h2 class="header-title text-base font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-brain text-emerald-400"></i>
+                        การวิเคราะห์ช่วยเหลือตัดสินใจ
+                    </h2>
+                    <p class="text-[10px] text-slate-400">ประมวลผลแนะนำแบบเรียลไทม์ตามทิศทางลม</p>
+                </div>
+
+                <!-- A. เขตที่ควรแจ้งเตือนเตือนภัยด่วน (Warning Zones) -->
+                <div>
+                    <h3 class="text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3 bg-rose-500 rounded-full inline-block"></span>
+                        1. เขตที่ควรแจ้งเตือนภัยเร่งด่วน (ตามแนวทิศทางลม)
+                    </h3>
+                    <div id="container-districts-warned" class="space-y-1.5 max-h-[110px] overflow-y-auto pr-1">
+                        <!-- Dynamic District Alert Badges -->
+                    </div>
+                </div>
+
+                <!-- B. แนะนำเส้นทางอพยพหลัก (Evacuation Routes) -->
+                <div>
+                    <h3 class="text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3 bg-amber-500 rounded-full inline-block"></span>
+                        2. เส้นทางการเลี่ยงและอพยพปลอดภัย
+                    </h3>
+                    <div id="container-evac-routes" class="space-y-1.5 text-xs">
+                        <!-- Dynamic Evac Roads suggestions -->
+                    </div>
+                </div>
+
+                <!-- C. แนะนำจุดพักพิงที่เหมาะสม (Recommended Shelters) -->
+                <div>
+                    <h3 class="text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-3 bg-emerald-500 rounded-full inline-block"></span>
+                        3. จุดพักพิงแนะนำ (นอกเขตทิศทางก๊าซพิษ)
+                    </h3>
+                    <div id="container-shelters" class="space-y-1.5">
+                        <!-- Dynamic Shelter list -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Direct Command Console (ปุ่มสั่งการด่วนของผู้ว่าฯ) -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-4 shadow-md">
+                <h2 class="header-title text-sm font-semibold text-white mb-2.5 flex items-center gap-1.5">
+                    <i class="fa-solid fa-person-circle-check text-rose-400"></i>
+                    ศูนย์สั่งการผู้ว่าราชการกรุงเทพฯ (Direct Command)
+                </h2>
+                
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <button onclick="triggerAction('sms')" class="bg-rose-600 hover:bg-rose-500 text-white font-medium p-2.5 rounded-xl shadow-md shadow-rose-600/10 transition flex flex-col items-center justify-center gap-1 border border-rose-500/30">
+                        <i class="fa-solid fa-comment-sms text-sm"></i>
+                        <span>แจ้งเตือน SMS/LINE</span>
+                    </button>
+                    
+                    <button onclick="triggerAction('evac')" class="bg-amber-600 hover:bg-amber-500 text-white font-medium p-2.5 rounded-xl shadow-md shadow-amber-600/10 transition flex flex-col items-center justify-center gap-1 border border-amber-500/30">
+                        <i class="fa-solid fa-truck-medical text-sm"></i>
+                        <span>สั่งเริ่มแผนอพยพ</span>
+                    </button>
+
+                    <button onclick="triggerAction('water-spray')" class="bg-sky-600 hover:bg-sky-500 text-white font-medium p-2.5 rounded-xl shadow-md shadow-sky-600/10 transition flex flex-col items-center justify-center gap-1 border border-sky-500/30 col-span-2">
+                        <i class="fa-solid fa-droplet text-sm"></i>
+                        <span>ส่งหน่วยพ่นละอองน้ำลดละอองสารเคมี</span>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- TOAST POPUPS (สำหรับประกาศข่าวสารสั่งการจำลอง) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-2.5 px-6 text-center text-slate-500 text-xs flex-shrink-0">
+        <div class="max-w-[1920px] w-full mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <span>© 2026 สำนักงานป้องกันและบรรเทาสาธารณภัย ร่วมกับ สำนักสิ่งแวดล้อม กรุงเทพมหานคร</span>
+            <span class="flex items-center gap-1.5 text-slate-400">
+                <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                ระบบรักษาความปลอดภัยและการเตรียมพร้อมระดับรัฐ
+            </span>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE SCRIPT LOGIC -->
+    <script>
+        // Global Simulation State
+        const state = {
+            sourceX: 250,  // Map Canvas X
+            sourceY: 280,  // Map Canvas Y
+            sourceType: 'factory', // factory, water, landfill
+            windAngle: 180, // degrees
+            windSpeed: 15,  // km/h
+            forecastTime: 15, // minutes (0, 10, 15, 20, 30)
+            plumeParticles: []
+        };
+
+        // Mock Bangkok Districts Data for the Visual Simulator
+        const districts = [
+            { id: 1, name: 'คลองเตย', x: 200, y: 310, pop: 106000, shelter: 'ศูนย์เยาวชนคลองเตย' },
+            { id: 2, name: 'ลาดกระบัง', x: 420, y: 250, pop: 180000, shelter: 'สถาบันเทคโนโลยีพระจอมเกล้าลาดกระบัง' },
+            { id: 3, name: 'หนองแขม', x: 70, y: 260, pop: 156000, shelter: 'โรงเรียนมัธยมวัดหนองแขม' },
+            { id: 4, name: 'จตุจักร', x: 220, y: 130, pop: 160000, shelter: 'ศูนย์กีฬาวชิรเบญจทัศ' },
+            { id: 5, name: 'บางนา', x: 330, y: 340, pop: 95000, shelter: 'ศูนย์นิทรรศการและการประชุมไบเทค บางนา' },
+            { id: 6, name: 'ดินแดง', x: 230, y: 190, pop: 120000, shelter: 'สนามกีฬาไทย-ญี่ปุ่น ดินแดง' },
+            { id: 7, name: 'มีนบุรี', x: 390, y: 150, pop: 140000, shelter: 'ศูนย์เยาวชนมีนบุรี' },
+            { id: 8, name: 'ตลิ่งชัน', x: 100, y: 160, pop: 105000, shelter: 'ตลิ่งชัน สปอร์ต คลับ' },
+            { id: 9, name: 'บางรัก', x: 180, y: 250, pop: 48000, shelter: 'โรงเรียนกรุงเทพคริสเตียนวิทยาลัย' },
+            { id: 10, name: 'ประเวศ', x: 340, y: 280, pop: 175000, shelter: 'สวนหลวง ร.9 (อาคารอเนกประสงค์)' }
+        ];
+
+        // Canvas Setup
+        const canvas = document.getElementById('bkk-simulation-map');
+        const ctx = canvas.getContext('2d');
+        let isDraggingSource = false;
+
+        function initMap() {
+            // Setup canvas pixel size to match layout
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            // Start particle animation loop
+            requestAnimationFrame(animate);
+            
+            // Adjust default source position on first load based on container sizes
+            state.sourceX = canvas.width * 0.45;
+            state.sourceY = canvas.height * 0.55;
+
+            // Trigger updates
+            recalculateImpacts();
+        }
+
+        // Handle Resize
+        window.addEventListener('resize', () => {
+            const rect = canvas.getBoundingClientRect();
+            const oldWidth = canvas.width;
+            const oldHeight = canvas.height;
+            
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            if (oldWidth > 0 && oldHeight > 0) {
+                // Keep source position relative
+                state.sourceX = (state.sourceX / oldWidth) * canvas.width;
+                state.sourceY = (state.sourceY / oldHeight) * canvas.height;
+            } else {
+                // Re-initialize source position in center
+                state.sourceX = canvas.width * 0.45;
+                state.sourceY = canvas.height * 0.55;
+            }
+        });
+
+        // Mouse/Touch Events on Canvas to relocate source
+        function getMousePos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getMousePos(canvas, e);
+            // Check if user clicked near active source (radius 15px)
+            const dist = Math.hypot(pos.x - state.sourceX, pos.y - state.sourceY);
+            if (dist < 20) {
+                isDraggingSource = true;
+            } else {
+                // Instantly relocate source on map click
+                state.sourceX = pos.x;
+                state.sourceY = pos.y;
+                recalculateImpacts();
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDraggingSource) {
+                const pos = getMousePos(canvas, e);
+                state.sourceX = pos.x;
+                state.sourceY = pos.y;
+                recalculateImpacts();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDraggingSource = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDraggingSource = false;
+        });
+
+        // Touch events adaptation for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                const touch = e.touches[0];
+                const pos = getMousePos(canvas, touch);
+                const dist = Math.hypot(pos.x - state.sourceX, pos.y - state.sourceY);
+                if (dist < 30) {
+                    isDraggingSource = true;
+                } else {
+                    state.sourceX = pos.x;
+                    state.sourceY = pos.y;
+                    recalculateImpacts();
+                }
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (isDraggingSource && e.touches.length > 0) {
+                const touch = e.touches[0];
+                const pos = getMousePos(canvas, touch);
+                state.sourceX = pos.x;
+                state.sourceY = pos.y;
+                recalculateImpacts();
+                e.preventDefault(); // Stop scrolling while dragging
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => {
+            isDraggingSource = false;
+        });
+
+        // Update Wind Angle
+        function updateWindAngle(val) {
+            state.windAngle = parseInt(val);
+            
+            // Get approximate Direction word
+            let dirWord = "";
+            const angle = state.windAngle;
+            if ((angle >= 337.5) || (angle < 22.5)) dirWord = "พัดขึ้นทิศเหนือ";
+            else if (angle >= 22.5 && angle < 67.5) dirWord = "พัดไปทิศตะวันออกเฉียงเหนือ";
+            else if (angle >= 67.5 && angle < 112.5) dirWord = "พัดไปทิศตะวันออก";
+            else if (angle >= 112.5 && angle < 157.5) dirWord = "พัดไปทิศตะวันออกเฉียงใต้";
+            else if (angle >= 157.5 && angle < 202.5) dirWord = "พัดลงทิศใต้";
+            else if (angle >= 202.5 && angle < 247.5) dirWord = "พัดไปทิศตะวันตกเฉียงใต้";
+            else if (angle >= 247.5 && angle < 292.5) dirWord = "พัดไปทิศตะวันตก";
+            else if (angle >= 292.5 && angle < 337.5) dirWord = "พัดไปทิศตะวันตกเฉียงเหนือ";
+
+            document.getElementById('wind-angle-text').innerText = `${angle}° (${dirWord})`;
+            document.getElementById('compass-arrow').style.transform = `rotate(${angle}deg)`;
+            document.getElementById('map-overlay-wind').innerText = `ทิศทางลม: ${angle}° | ${state.windSpeed} km/h`;
+            recalculateImpacts();
+        }
+
+        // Update Wind Speed
+        function updateWindSpeed(val) {
+            state.windSpeed = parseInt(val);
+            document.getElementById('wind-speed-text').innerText = `${val} กม./ชม.`;
+            document.getElementById('map-overlay-wind').innerText = `ทิศทางลม: ${state.windAngle}° | ${val} km/h`;
+            recalculateImpacts();
+        }
+
+        // Update Forecast Slider Time
+        function updateForecastTime(val) {
+            state.forecastTime = parseInt(val);
+            document.getElementById('forecast-time-text').innerText = `คาดการณ์ล่วงหน้า: +${val} นาที`;
+            recalculateImpacts();
+        }
+
+        // Change Source Type
+        function setSourceType(type) {
+            state.sourceType = type;
+            document.querySelectorAll('.btn-source').forEach(btn => btn.classList.remove('bg-rose-500/20', 'border-rose-500', 'bg-blue-500/20', 'border-blue-500', 'bg-amber-500/20', 'border-amber-500'));
+            
+            const btn = document.getElementById(`btn-src-${type}`);
+            if (type === 'factory') {
+                btn.classList.add('bg-rose-500/20', 'border-rose-500');
+                document.getElementById('map-overlay-source-strength').innerText = 'สูงมาก (Very High)';
+                document.getElementById('map-overlay-source-strength').className = 'text-rose-400 font-bold';
+            } else if (type === 'water') {
+                btn.classList.add('bg-blue-500/20', 'border-blue-500');
+                document.getElementById('map-overlay-source-strength').innerText = 'ปานกลาง (Medium)';
+                document.getElementById('map-overlay-source-strength').className = 'text-sky-400 font-bold';
+            } else {
+                btn.classList.add('bg-amber-500/20', 'border-amber-500');
+                document.getElementById('map-overlay-source-strength').innerText = 'ต่ำ-ปานกลาง (Low-Med)';
+                document.getElementById('map-overlay-source-strength').className = 'text-amber-400 font-bold';
+            }
+            recalculateImpacts();
+        }
+
+        // Predefined Scenarios Loader
+        function loadScenario(scen) {
+            if (scen === 'kingkaew') {
+                state.sourceX = canvas.width * 0.75;
+                state.sourceY = canvas.height * 0.65;
+                setSourceType('factory');
+                updateWindAngle(280); // Blow west into inner BKK
+                updateWindSpeed(25);
+                updateForecastTime(20);
+                document.getElementById('input-wind-angle').value = 280;
+                document.getElementById('input-wind-speed').value = 25;
+                document.getElementById('input-time-forecast').value = 20;
+                showToast("จำลองเหตุการณ์: สารเคมีรั่วลาดกระบัง ลมพัดทิศตะวันตกมุ่งเข้ากรุงเทพชั้นใน!", "rose");
+            } else if (scen === 'nongkhaem') {
+                state.sourceX = canvas.width * 0.20;
+                state.sourceY = canvas.height * 0.50;
+                setSourceType('landfill');
+                updateWindAngle(90); // Blow east
+                updateWindSpeed(10);
+                updateForecastTime(15);
+                document.getElementById('input-wind-angle').value = 90;
+                document.getElementById('input-wind-speed').value = 10;
+                document.getElementById('input-time-forecast').value = 15;
+                showToast("จำลองเหตุการณ์: กลิ่นไหม้บ่อขยะหนองแขม ลมโชยทิศตะวันออก", "amber");
+            } else if (scen === 'khlongtoei') {
+                state.sourceX = canvas.width * 0.45;
+                state.sourceY = canvas.height * 0.70;
+                setSourceType('water'); // Repurposing water color as warehouse
+                updateWindAngle(10); // Blow slightly north-east
+                updateWindSpeed(18);
+                updateForecastTime(15);
+                document.getElementById('input-wind-angle').value = 10;
+                document.getElementById('input-wind-speed').value = 18;
+                document.getElementById('input-time-forecast').value = 15;
+                showToast("จำลองเหตุการณ์: แอมโมเนียฟุ้งกระจายคลองเตย ลมพัดทิศเหนือโชยสู่ชุมชนดินแดง", "sky");
+            }
+            recalculateImpacts();
+        }
+
+        // Toast Messages
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = "bg-slate-900 border-slate-700 text-slate-200";
+            let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
+            if (type === 'rose') {
+                bgClass = "bg-rose-950/90 border-rose-800 text-rose-100 shadow-rose-950/30";
+                icon = '<i class="fa-solid fa-triangle-exclamation text-rose-400"></i>';
+            } else if (type === 'amber') {
+                bgClass = "bg-amber-950/90 border-amber-800 text-amber-100 shadow-amber-950/30";
+                icon = '<i class="fa-solid fa-bell text-amber-400 animate-bounce"></i>';
+            } else if (type === 'sky') {
+                bgClass = "bg-sky-950/90 border-sky-800 text-sky-100 shadow-sky-950/30";
+                icon = '<i class="fa-solid fa-circle-info text-sky-400"></i>';
+            } else if (type === 'emerald') {
+                bgClass = "bg-emerald-950/90 border-emerald-800 text-emerald-100 shadow-emerald-950/30";
+                icon = '<i class="fa-solid fa-circle-check text-emerald-400 animate-pulse"></i>';
+            }
+
+            toast.className = `p-4 rounded-xl border ${bgClass} shadow-xl max-w-sm flex items-center gap-3 transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto`;
+            toast.innerHTML = `
+                <div class="text-xl">${icon}</div>
+                <div>
+                    <div class="text-xs font-semibold">${message}</div>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 50);
+
+            // Auto remove toast
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+
+        // Execute Direct Gov Commands
+        function triggerAction(action) {
+            if (action === 'sms') {
+                showToast("กทม. ส่งสารแจ้งเตือนอพยพด่วนผ่าน Cell Broadcast & LINE Alerts สำเร็จ!", "rose");
+            } else if (action === 'evac') {
+                showToast("ระดมเจ้าหน้าที่ ปภ. และสปภ. นำรถบัสอพยพพร้อมไฟทางเพื่อเข้าคุมเขตช่วยเหลือและกู้ภัยเรียบร้อย", "amber");
+            } else if (action === 'water-spray') {
+                showToast("สั่งการเปิดระบบละอองน้ำแรงดันสูงของอาคารโดยรอบ และรถดับเพลิงเพื่อสลายพิษทางอากาศเรียบร้อย", "emerald");
+            }
+        }
+
+        // Core Mathematical Simulation of Plume Impact
+        let affectedDistricts = [];
+
+        function recalculateImpacts() {
+            // Calculate direction vector
+            // Standard Compass 0 deg = North (upward, i.e., -Y)
+            // 90 deg = East (rightward, i.e., +X)
+            const angleRad = (state.windAngle - 90) * Math.PI / 180;
+            const dirX = Math.cos(angleRad);
+            const dirY = Math.sin(angleRad);
+
+            // Distances depend on Wind Speed and Forecast Time
+            // Faster wind = narrower but longer plume
+            // Time elapsed = how far the plume has travelled
+            const elapsedHours = state.forecastTime / 60.0;
+            const plumeLength = Math.max(80, (state.windSpeed * 10) * (elapsedHours + 0.15));
+            const coneAngle = 0.40 - (state.windSpeed * 0.003); // Narrower cone at high speed
+
+            affectedDistricts = [];
+
+            // Classify each mock district
+            districts.forEach(d => {
+                // Get district coordinate relative to canvas scale (approx)
+                const dx = (d.x / 500) * canvas.width;
+                const dy = (d.y / 400) * canvas.height;
+
+                // Relative vector from source
+                const rx = dx - state.sourceX;
+                const ry = dy - state.sourceY;
+                const distToSource = Math.hypot(rx, ry);
+
+                // Project onto wind direction vector
+                const proj = rx * dirX + ry * dirY;
+                // Crosswind distance (perpendicular)
+                const crosswindDist = Math.hypot(rx - proj * dirX, ry - proj * dirY);
+
+                // Determine if inside plume cone
+                const maxAllowedCrosswind = proj * Math.tan(coneAngle) + 25; // 25px offset padding
+                
+                let riskStatus = 'green'; // Green: Safe
+
+                if (distToSource < 40) {
+                    riskStatus = 'red'; // Immediate vicinity
+                } else if (proj > 0 && proj <= plumeLength && crosswindDist <= maxAllowedCrosswind) {
+                    // Close and in plume direction
+                    if (distToSource < plumeLength * 0.4) {
+                        riskStatus = 'red'; // Heavy smell / toxic
+                    } else {
+                        riskStatus = 'yellow'; // Annoying odor / alert
+                    }
+                }
+
+                d.risk = riskStatus;
+                if (riskStatus !== 'green') {
+                    affectedDistricts.push(d);
+                }
+            });
+
+            // Update UI elements
+            updateUI(dirX, dirY, plumeLength);
+        }
+
+        function updateUI(dirX, dirY, plumeLength) {
+            // Update Coordinates label
+            const scaleX = 100.40 + (state.sourceX / canvas.width) * 0.4;
+            const scaleY = 13.60 + (1 - (state.sourceY / canvas.height)) * 0.3;
+            document.getElementById('origin-coordinate').innerText = `Lat: ${scaleY.toFixed(4)}°, Lng: ${scaleX.toFixed(4)}°`;
+
+            // Identify nearest district to source
+            let nearestDist = districts[0];
+            let minDist = Infinity;
+            districts.forEach(d => {
+                const dx = (d.x / 500) * canvas.width;
+                const dy = (d.y / 400) * canvas.height;
+                const dist = Math.hypot(dx - state.sourceX, dy - state.sourceY);
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearestDist = d;
+                }
+            });
+            
+            const sourceNameMap = {
+                'factory': 'โรงงานเคมีและสารเคมีไวไฟ',
+                'water': 'โรงบำบัดน้ำเสียหลัก',
+                'landfill': 'กองขยะและบ่อบำบัดขยะพลาสติก'
+            };
+            document.getElementById('origin-district-text').innerText = `เขต${nearestDist.name} (${sourceNameMap[state.sourceType]})`;
+
+            // Update Left Sensors mock values based on source and speed
+            const isHeavy = state.sourceType === 'factory';
+            const multiplier = isHeavy ? 1.5 : (state.sourceType === 'water' ? 0.8 : 1.2);
+            const vocVal = (3.5 * multiplier * (1 - state.forecastTime/60)).toFixed(2);
+            const h2sVal = (1.5 * (multiplier * 0.5) * (1 - state.forecastTime/70)).toFixed(2);
+            const nh3Val = (0.5 * multiplier * (state.forecastTime/30)).toFixed(2);
+
+            document.getElementById('sensor-voc').innerHTML = `${Math.max(0.1, vocVal)} <span class="text-[10px] text-slate-500">ppm</span>`;
+            document.getElementById('sensor-h2s').innerHTML = `${Math.max(0.01, h2sVal)} <span class="text-[10px] text-slate-500">ppm</span>`;
+            document.getElementById('sensor-nh3').innerHTML = `${Math.max(0.05, nh3Val)} <span class="text-[10px] text-slate-500">ppm</span>`;
+
+            // Progress bar animations
+            document.getElementById('bar-voc').style.width = `${Math.min(100, Math.max(5, vocVal * 25))}%`;
+            document.getElementById('bar-h2s').style.width = `${Math.min(100, Math.max(5, h2sVal * 50))}%`;
+            document.getElementById('bar-nh3').style.width = `${Math.min(100, Math.max(5, nh3Val * 30))}%`;
+
+            // Update Suggested Districts Warning panel
+            const warnContainer = document.getElementById('container-districts-warned');
+            warnContainer.innerHTML = '';
+            
+            const redDistricts = affectedDistricts.filter(d => d.risk === 'red');
+            const yellowDistricts = affectedDistricts.filter(d => d.risk === 'yellow');
+
+            if (affectedDistricts.length === 0) {
+                warnContainer.innerHTML = `
+                    <div class="text-slate-500 text-xs py-3 text-center bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-lg block mb-1"></i>
+                        ไม่มีเขตกรุงเทพฯ ได้รับผลกระทบจากกลุ่มก๊าซในขณะนี้
+                    </div>
+                `;
+            } else {
+                // Add Red Risk Districts
+                redDistricts.forEach(d => {
+                    warnContainer.innerHTML += `
+                        <div class="flex justify-between items-center bg-rose-950/40 border border-rose-800/60 p-2.5 rounded-xl text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="relative flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                                </span>
+                                <div>
+                                    <div class="font-bold text-rose-300">เขต${d.name}</div>
+                                    <div class="text-[10px] text-rose-400/80">ได้รับผลกระทบจากกลิ่นรุนแรง (กลุ่มเสี่ยง)</div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-rose-300 bg-rose-900/40 border border-rose-500/20 px-2 py-0.5 rounded font-mono">
+                                ประชากร: ${(d.pop/1000).toFixed(0)}k คน
+                            </span>
+                        </div>
+                    `;
+                });
+
+                // Add Yellow Risk Districts
+                yellowDistricts.forEach(d => {
+                    warnContainer.innerHTML += `
+                        <div class="flex justify-between items-center bg-amber-950/20 border border-amber-800/40 p-2.5 rounded-xl text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                                <div>
+                                    <div class="font-semibold text-amber-300">เขต${d.name}</div>
+                                    <div class="text-[10px] text-slate-400">เริ่มได้กลิ่นรบกวน เจือจาง</div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded font-mono">
+                                สัญญาณปานกลาง
+                            </span>
+                        </div>
+                    `;
+                });
+            }
+
+            // Update Evacuation Road suggestions
+            const evacContainer = document.getElementById('container-evac-routes');
+            evacContainer.innerHTML = '';
+            if (redDistricts.length > 0) {
+                // Construct logic-based routes depending on wind angle
+                let routeText = "";
+                let warningRoute = "";
+                if (state.windAngle > 135 && state.windAngle <= 225) {
+                    routeText = "มุ่งหน้าทิศเหนือ-ตะวันตก หลีกเลี่ยงถนนพระราม 4 และสุขุมวิทมุ่งใต้";
+                    warningRoute = "ปิดช่องการจราจรฝั่งขาออก มุ่งหน้าสมุทรปราการ";
+                } else if (state.windAngle > 45 && state.windAngle <= 135) {
+                    routeText = "มุ่งหน้าทิศตะวันตก เลี่ยงถนนลาดกระบัง-อ่อนนุชและมอเตอร์เวย์มุ่งตะวันออก";
+                    warningRoute = "ปิดถนนลาดกระบัง ช่วงแยกกิ่งแก้ว";
+                } else {
+                    routeText = "ใช้ทางเลี่ยงตรอกซอกซอยตามแนวทิศเหนือและใต้ เลี่ยงจุดตัดลมกลางสาย";
+                    warningRoute = "จำกัดการเดินทางเข้าพื้นที่จุดกระจายตัวหลัก 3 กม.";
+                }
+
+                evacContainer.innerHTML = `
+                    <div class="space-y-1.5">
+                        <div class="bg-slate-850 p-2.5 rounded-xl border border-slate-800 flex items-start gap-2">
+                            <i class="fa-solid fa-map-signs text-amber-400 text-sm mt-0.5"></i>
+                            <div>
+                                <div class="font-semibold text-slate-200">ทางอพยพที่แนะนำ:</div>
+                                <div class="text-[10px] text-amber-300">${routeText}</div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-850 p-2.5 rounded-xl border border-slate-800 flex items-start gap-2">
+                            <i class="fa-solid fa-ban text-rose-500 text-sm mt-0.5"></i>
+                            <div>
+                                <div class="font-semibold text-slate-200">จุดกักตัว/ปิดถนนที่ควรเลี่ยง:</div>
+                                <div class="text-[10px] text-rose-400">${warningRoute}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                evacContainer.innerHTML = `
+                    <div class="text-slate-500 text-[11px] text-center py-2">
+                        ไม่มีประกาศคำแนะนำเส้นทางอพยพเป็นพิเศษเนื่องจากระดับความปลอดภัยปกติ
+                    </div>
+                `;
+            }
+
+            // Update Recommended Shelters
+            // Logic: Find safe districts (where risk is green) that have shelter metadata
+            const shelterContainer = document.getElementById('container-shelters');
+            shelterContainer.innerHTML = '';
+            
+            const safeDistricts = districts.filter(d => d.risk === 'green');
+            // Show top 2 safe shelters closest to incident
+            let shown = 0;
+            safeDistricts.forEach(d => {
+                if (shown < 2) {
+                    const dx = (d.x / 500) * canvas.width;
+                    const dy = (d.y / 400) * canvas.height;
+                    const distance = (Math.hypot(dx - state.sourceX, dy - state.sourceY) * 0.05).toFixed(1); // Km approximation
+
+                    shelterContainer.innerHTML += `
+                        <div class="bg-slate-950 hover:bg-slate-900 border border-slate-800 p-2.5 rounded-xl flex items-center justify-between text-xs transition">
+                            <div class="flex items-center gap-2.5">
+                                <div class="bg-emerald-500/10 text-emerald-400 p-2 rounded-lg border border-emerald-500/20">
+                                    <i class="fa-solid fa-house-chimney text-xs"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-slate-200">${d.shelter}</div>
+                                    <div class="text-[10px] text-slate-400">เขต${d.name} • ระยะทางประมาณ ~${distance} กม.</div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-mono font-bold">
+                                ปลอดภัย (Safe)
+                            </span>
+                        </div>
+                    `;
+                    shown++;
+                }
+            });
+
+            if (shown === 0) {
+                shelterContainer.innerHTML = `
+                    <div class="text-slate-500 text-[11px] text-center py-2">
+                        วิกฤตหนัก: ไม่มีจุดพักพิงในเมืองชั้นในที่ปลอดภัย กรุณาอพยพออกนอกกรุงเทพฯ ปริมณฑล
+                    </div>
+                `;
+            }
+        }
+
+        // Generate Wind Flow and Plume Particles for Beautiful Canvas Animation
+        function createPlumeParticles() {
+            // Only spawn if speed is greater than 0
+            const maxParticles = 120;
+            if (state.plumeParticles.length < maxParticles) {
+                const angleRad = (state.windAngle - 90) * Math.PI / 180;
+                
+                // Add randomness to release angle (dispersion)
+                const dispersion = 0.35; 
+                const angleRandom = angleRad + (Math.random() - 0.5) * dispersion;
+                
+                state.plumeParticles.push({
+                    x: state.sourceX,
+                    y: state.sourceY,
+                    vx: Math.cos(angleRandom) * (state.windSpeed * 0.15 + Math.random() * 0.5),
+                    vy: Math.sin(angleRandom) * (state.windSpeed * 0.15 + Math.random() * 0.5),
+                    alpha: 1.0,
+                    size: 3 + Math.random() * 6,
+                    life: 0,
+                    maxLife: 150 + Math.random() * 100
+                });
+            }
+        }
+
+        // Canvas Rendering Loop
+        function animate() {
+            // Spawn some particles
+            createPlumeParticles();
+
+            // Clear Background
+            ctx.fillStyle = '#090d16'; // Slate 950 base
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Draw Grid Lines for Dark HUD / Sci-Fi Theme
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 0.5;
+            const gridSize = 40;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // 2. Draw District boundaries / markers on the map
+            districts.forEach(d => {
+                const dx = (d.x / 500) * canvas.width;
+                const dy = (d.y / 400) * canvas.height;
+
+                // Color based on risk assessment
+                let baseColor = 'rgba(16, 185, 129, 0.15)'; // Green soft
+                let strokeColor = 'rgba(16, 185, 129, 0.4)';
+                let glowColor = 'rgba(16, 185, 129, 0.2)';
+
+                if (d.risk === 'red') {
+                    baseColor = 'rgba(239, 68, 68, 0.25)'; // Red soft
+                    strokeColor = 'rgba(239, 68, 68, 0.8)';
+                    glowColor = 'rgba(239, 68, 68, 0.5)';
+                } else if (d.risk === 'yellow') {
+                    baseColor = 'rgba(245, 158, 11, 0.20)'; // Amber soft
+                    strokeColor = 'rgba(245, 158, 11, 0.6)';
+                    glowColor = 'rgba(245, 158, 11, 0.3)';
+                }
+
+                // Draw Radar rings around red alert zones
+                if (d.risk === 'red') {
+                    const pulseRadius = 15 + (Date.now() % 1000) * 0.02;
+                    ctx.beginPath();
+                    ctx.arc(dx, dy, pulseRadius, 0, 2 * Math.PI);
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.3)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                // Draw Glow Effect
+                ctx.save();
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = glowColor;
+
+                // Draw District Circle Marker
+                ctx.beginPath();
+                ctx.arc(dx, dy, 14, 0, 2 * Math.PI);
+                ctx.fillStyle = baseColor;
+                ctx.fill();
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.restore();
+
+                // Draw District Label Text
+                ctx.fillStyle = '#94a3b8'; // Slate 400
+                ctx.font = 'bold 9px Sarabun';
+                ctx.textAlign = 'center';
+                ctx.fillText(d.name, dx, dy - 20);
+                
+                // Small indicator of risk
+                if (d.risk === 'red') {
+                    ctx.fillStyle = '#f87171'; // Red 400
+                    ctx.font = 'bold 8px Sarabun';
+                    ctx.fillText('อันตรายสูง', dx, dy + 2);
+                } else if (d.risk === 'yellow') {
+                    ctx.fillStyle = '#fbbf24'; // Amber 400
+                    ctx.font = '8px Sarabun';
+                    ctx.fillText('เฝ้าระวัง', dx, dy + 2);
+                } else {
+                    ctx.fillStyle = '#10b981'; // Green
+                    ctx.font = '8px Sarabun';
+                    ctx.fillText('ปกติ', dx, dy + 2);
+                }
+            });
+
+            // 3. Draw Plume Flow Particles
+            state.plumeParticles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life++;
+                p.alpha = 1 - (p.life / p.maxLife);
+                p.size += 0.08; // Gas expands as it disperses
+
+                // Render particle with radial gradient for realism
+                const distFromSource = Math.hypot(p.x - state.sourceX, p.y - state.sourceY);
+                let colorString = 'rgba(245, 158, 11,'; // Amber for warning plume
+                
+                // Closer particles are dangerous Red
+                if (distFromSource < 100) {
+                    colorString = 'rgba(239, 68, 68,'; // Red
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, 2 * Math.PI);
+                ctx.fillStyle = `${colorString}${p.alpha * 0.35})`;
+                ctx.fill();
+
+                // Remove dead particles
+                if (p.life >= p.maxLife || p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+                    state.plumeParticles.splice(index, 1);
+                }
+            });
+
+            // 4. Draw Gas Dispersion Cone Overlay (Visual Safety Boundary)
+            const angleRad = (state.windAngle - 90) * Math.PI / 180;
+            const elapsedHours = state.forecastTime / 60.0;
+            const plumeLength = Math.max(80, (state.windSpeed * 10) * (elapsedHours + 0.15));
+            const coneAngle = 0.40 - (state.windSpeed * 0.003);
+
+            const leftAngle = angleRad - coneAngle;
+            const rightAngle = angleRad + coneAngle;
+
+            ctx.beginPath();
+            ctx.moveTo(state.sourceX, state.sourceY);
+            ctx.lineTo(state.sourceX + Math.cos(leftAngle) * plumeLength, state.sourceY + Math.sin(leftAngle) * plumeLength);
+            ctx.arc(state.sourceX, state.sourceY, plumeLength, leftAngle, rightAngle);
+            ctx.lineTo(state.sourceX, state.sourceY);
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.03)';
+            ctx.fill();
+
+            // 5. Draw the Active Incident Source Target (The epicenter)
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = 'rgba(239, 68, 68, 0.8)';
+            
+            ctx.beginPath();
+            ctx.arc(state.sourceX, state.sourceY, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ef4444'; // Solid Red
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Crosshair lines on source icon
+            ctx.beginPath();
+            ctx.moveTo(state.sourceX - 16, state.sourceY);
+            ctx.lineTo(state.sourceX + 16, state.sourceY);
+            ctx.moveTo(state.sourceX, state.sourceY - 16);
+            ctx.lineTo(state.sourceX, state.sourceY + 16);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.restore();
+
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize Everything on Load
+        window.onload = function() {
+            initMap();
+            // Default load Kingkaew scenario to demonstrate full capabilities right away
+            setTimeout(() => {
+                loadScenario('kingkaew');
+            }, 500);
+        };
+    </script>
+</body>
+</html>
